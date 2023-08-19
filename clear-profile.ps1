@@ -1,13 +1,8 @@
-# This script lists existing user profiles and prompts the user to delete them.
-# It also exempts the profiles that are specified in the `exemptedProfiles` list.
+# This script lists user profiles in the registry and asks for confirmation before deleting any profile.
+# It also deletes the profile permanently in the registry.
 
-Write-Host "**************** ------- *****************"
-Write-Host "**************** AUTHOR ******************"
-Write-Host "-*-*- Yours Truly: Sebastian Opiyo-*-*-*-*"
-Write-Host "-*-*- Version 2 on 14Th Aug, 2023. -*-*-*-"
-Write-Host "**************** ------- *****************"
-Write-Host ""
-Write-Host ""
+# Add error handling to the script.
+$ErrorActionPreference = "Stop"
 
 Write-Host "PROFILE CLEARNER SCRIPT"
 Write-Host "Created by Sebastian Opiyo - This is version 3 of the script"
@@ -48,8 +43,12 @@ if ($confirm -eq "Y") {
 
         # Delete the user profile directory if the user confirms.
         if ($confirmDelete -eq "Y") {
-            Remove-Item -Path $profilePath -Force
-            Write-Host "Path to user profile deleted successfuly."
+            try {
+                Remove-Item -Path $profilePath -Force
+                Write-Host "Path to user profile deleted successfuly."
+            } catch {
+                Write-Host "An error occurred while deleting the user profile directory. $($_.Exception.Message)"
+            }
         }
     }
 }
@@ -79,7 +78,11 @@ foreach ($hiveKey in $profiles) {
 
     # Delete the registry key if the user confirms.
     if ($confirmDelete -eq "Y") {
-        Remove-Item -Path ("HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\" + $hiveKey.PSChildName) -Force
+        try {
+            Remove-Item -Path ("HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\" + $hiveKey.PSChildName) -Force
+        } catch {
+            Write-Host "An error occurred while deleting the registry key. $($_.Exception.Message)"
+        }
     }
 }
 
