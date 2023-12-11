@@ -2,7 +2,26 @@
 # It also deletes the profile permanently in the registry.
 
 # Add error handling to the script.
+# User profiles to skip
+# OracleOraDB18Home1MTSRecoveryService, MSSQL$SQLEXPRESS, OracleVssWriterXE,ksnproxy, OracleOraDB18Home1TNSListener, SQLTELEMETRY$SQLEXPRESS, OracleServiceXE, Admin, NetworkService, LocalService, systemprofile
+
 $ErrorActionPreference = "Stop"
+
+# Define the list of excluded user profiles.
+$excludedProfiles = @(
+    "OracleOraDB18Home1MTSRecoveryService",
+    "MSSQL$SQLEXPRESS",
+    "OracleVssWriterXE",
+    "ksnproxy",
+    "OracleOraDB18Home1TNSListener",
+    "SQLTELEMETRY$SQLEXPRESS",
+    "OracleServiceXE",
+    "Admin",
+    "NetworkService",
+    "LocalService",
+    "systemprofile"
+)
+
 
 Write-Host "PROFILE CLEARNER SCRIPT"
 Write-Host "Created by Sebastian Opiyo - This is version 3 of the script"
@@ -37,6 +56,12 @@ if ($confirm -eq "Y") {
         $profilePath = $profile.LocalPath
         $profileSID = $profile.SID
 
+        # Check if the profile name is excluded.
+        if ($excludedProfiles -contains $profileName){
+            Write-Host "Skipping profile '$profileName' because it is excluded."
+            continue
+        }
+
         # Prompt the user to confirm the deletion of the user profile directory.
         $confirmDelete = Read-Host "Do you want to delete the user profile directory '$profilePath'? (Y/N)"
         Write-Host "User profile SID: $($profileName)"
@@ -69,6 +94,12 @@ $profiles = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVers
 # Print the list of names and ProfileImagePath.
 # Print the list of names and ProfileImagePath.
 foreach ($hiveKey in $profiles) {
+    # Check if profile name is excluded
+    if ($excludedProfiles -contains $hiveKey.PSChildName){
+        Write-Host "Skipping profile '$($hiveKey.PSChildName)' because it is excluded."
+        continue
+    }
+
     $profileImagePath = (Get-ItemProperty -Path ("HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\" + $hiveKey.PSChildName)).ProfileImagePath
     Write-Host "Name: $($hiveKey.PSChildName)"
     Write-Host "ProfileImagePath: $profileImagePath"
